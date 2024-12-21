@@ -36,6 +36,7 @@ namespace Lunib
 			void* GetNativeWindow() const override { return m_Window; }
 			IVec2 GetPos() const override { return m_Data.Position; }
 			GraphicsContext& GetContext() { return *m_Context; }
+			WindowMode GetMode() const override { return m_Data.Mode; }
 
 		private:
 			void Init(const WindowSpecification& p_spec);
@@ -44,6 +45,9 @@ namespace Lunib
 			GLFWwindow* m_Window    	= nullptr;
 			GLFWwindow* m_OldWindow 	= nullptr;
 			GraphicsContext* m_Context 	= nullptr;
+
+			uint32_t m_InitialWidth;
+			uint32_t m_InitialHeight;
 
 			struct WindowData
 			{

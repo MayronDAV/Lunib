@@ -86,6 +86,11 @@ namespace Lunib
 				return ToString();
 			}
 
+			inline constexpr bool operator==(EventType p_Type) const
+			{
+				return this->GetEventType() == p_Type;
+			}
+
 			friend std::ostream& operator<<(std::ostream& p_os, const Event& p_event)
 			{
 				p_os << p_event.ToString();

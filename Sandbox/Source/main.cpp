@@ -6,20 +6,29 @@
 #include <format>
 
 
+
 static bool s_Running 			= true;
+static Lunib::Window* s_Window 	= nullptr;
 static Lunib::Input* s_Input 	= nullptr;
 
 
-void EventCallback(Lunib::Event& p_event)
+static void EventCallback(Lunib::Event& p_event)
 {
-	std::cout << p_event << "\n";
-		
-	p_event.Dispatch<Lunib::WindowCloseEvent>([&](Lunib::WindowCloseEvent&) -> bool
+	if (p_event == Lunib::EventType::WindowClose)
 	{
 		s_Running = false;
-		return true;
-	});
+	}
+
+	if (s_Input->IsKeyPressed(p_event, Lunib::Key::F11))
+	{
+		if (s_Window->GetMode() != Lunib::WindowMode::Fullscreen)
+			s_Window->SetWindowMode(Lunib::WindowMode::Fullscreen, true, true);
+		else
+			s_Window->SetWindowMode(Lunib::WindowMode::Windowed, false, true);
+	}
 }
+
+
 
 
 int main()
@@ -28,21 +37,22 @@ int main()
 	wspec.Title 						= "Sandbox";
 	wspec.Width 						= 800;
 	wspec.Height 						= 600;
-	wspec.Maximize 						= true;
+	wspec.Maximize 						= false;
 	wspec.Resizable 					= true;
 	wspec.Mode 							= Lunib::WindowMode::Windowed;
 
-	Lunib::Window* window 				= Lunib::Window::Create(wspec);
+	s_Window 							= Lunib::Window::Create(wspec);
+	s_Window->SetEventCallback(EventCallback);
 
-	window->SetEventCallback(EventCallback);
-
-	s_Input 							= Lunib::Input::Create(window);
+	s_Input 							= Lunib::Input::Create(s_Window);
 
 	while(s_Running)
 	{
-		window->OnUpdate();
+		Lunib::RendererAPI::Get().ClearColor({ 1.0f }, false);
+
+		s_Window->OnUpdate();
 	}
 
 	delete s_Input;
-	delete window;
+	delete s_Window;
 }

@@ -20,6 +20,7 @@ namespace Lunib::Math
 
 		Vec() : x(T(0)), y(T(0)) {}
 		Vec(const Vec& p_v) = default;
+		Vec(T p_scalar) : x(p_scalar), y(p_scalar) {}
 		Vec(T p_x, T p_y) : x(p_x), y(p_y) {}
 
 		template<typename U>

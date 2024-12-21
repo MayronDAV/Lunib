@@ -36,6 +36,9 @@ namespace Lunib
 
 	GLFWWindow::GLFWWindow(const WindowSpecification &p_spec)
 	{
+		m_InitialWidth	= p_spec.Width;
+		m_InitialHeight = p_spec.Height;
+
 		Init(p_spec);
 	}
 
@@ -56,7 +59,7 @@ namespace Lunib
 	if (data.EventCallbackStd)			\
 		data.EventCallbackStd(event);
 
-    void GLFWWindow::Init(const WindowSpecification &p_spec)
+	void GLFWWindow::Init(const WindowSpecification &p_spec)
 	{
 		m_Data.Title 				= p_spec.Title;
 		m_Data.Width 				= p_spec.Width;
@@ -74,8 +77,8 @@ namespace Lunib
 		}
 
 		{
-			int width  				= int(m_Data.Width);
-			int height 				= int(m_Data.Height);
+			int width  				= int(p_spec.Width);
+			int height 				= int(p_spec.Height);
 			GLFWmonitor* monitor 	= nullptr;
 
 			if (m_Data.Mode == WindowMode::Fullscreen)
@@ -105,7 +108,7 @@ namespace Lunib
 				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 			#if defined(LUNIB_APPLE)
-			  	glfwWindowHint(GLFW_SAMPLES, 1);
+				glfwWindowHint(GLFW_SAMPLES, 1);
 				glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 				glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_FALSE);
 				glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
@@ -122,7 +125,7 @@ namespace Lunib
 			if (m_OldWindow)
 			{
 				glfwDestroyWindow(m_OldWindow);
-				m_OldWindow = nullptr;
+				m_OldWindow 		= nullptr;
 			}
 			else
 				s_GLFWWindowCount++;
@@ -269,11 +272,11 @@ namespace Lunib
 	}
 
 	void GLFWWindow::OnUpdate()
-    {
+	{
 		glfwPollEvents();
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			glfwSwapBuffers(m_Window);
-    }
+	}
 
 	void GLFWWindow::Maximize()
 	{
@@ -281,8 +284,8 @@ namespace Lunib
 			glfwMaximizeWindow(m_Window);
 	}
 
-    void GLFWWindow::EnableVsync(bool p_enable)
-    {
+	void GLFWWindow::EnableVsync(bool p_enable)
+	{
 		m_Data.Vsync = p_enable;
 
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
@@ -299,8 +302,8 @@ namespace Lunib
 	void GLFWWindow::SetWindowMode(WindowMode p_mode, bool p_maximize /* = true */, bool p_resizable /* = true */)
 	{
 		WindowSpecification spec 	= {};
-		spec.Width 					= m_Data.Width;
-		spec.Height 				= m_Data.Height;
+		spec.Width 					= m_InitialWidth;
+		spec.Height 				= m_InitialHeight;
 		spec.Mode 					= p_mode;
 		spec.Title 					= m_Data.Title;
 		spec.Maximize 				= p_maximize;
@@ -320,23 +323,23 @@ namespace Lunib
 		glfwSetWindowTitle(m_Window, m_Data.Title.c_str());
 	}
 
-    void GLFWWindow::SetPosition(const IVec2& p_pos)
-    {
+	void GLFWWindow::SetPosition(const IVec2& p_pos)
+	{
 		if (p_pos == m_Data.Position)
 			return;
 
 		m_Data.Position = p_pos;
 		glfwSetWindowPos(m_Window, p_pos.x, p_pos.y);
-    }
+	}
 
-    void GLFWWindow::SetWindowSize(uint32_t p_width, uint32_t p_height)
-    {
+	void GLFWWindow::SetWindowSize(uint32_t p_width, uint32_t p_height)
+	{
 		if (m_Data.Width == p_width && m_Data.Height == p_height)
 			return;
 
 		m_Data.Width 	= p_width;
 		m_Data.Height 	= p_height;
 		glfwSetWindowSize(m_Window, int(p_width), int(p_height));
-    }
+	}
 
 } // Lunib

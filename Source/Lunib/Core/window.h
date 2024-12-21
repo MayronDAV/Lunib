@@ -60,6 +60,7 @@ namespace Lunib
 			virtual std::string GetTitle() const								= 0;
 			virtual void* GetNativeWindow() const 								= 0;
 			virtual IVec2 GetPos() const 										= 0;
+			virtual WindowMode GetMode() const 									= 0;
 
 			static Window* Create(const WindowSpecification& p_spec);
 	};

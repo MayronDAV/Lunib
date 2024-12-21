@@ -18,6 +18,11 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+if (CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
+	set(CMAKE_CXX_FLAGS_DEBUG "/Zi")
+	set(CMAKE_LINKER_FLAGS_DEBUG "/DEBUG")
+endif()
+
 list(APPEND CMAKE_MODULE_PATH 	"${CMAKE_SOURCE_DIR}/CMake/modules/")
 set(LIB_ROOT_DIR 				"${CMAKE_SOURCE_DIR}/Lib")
 

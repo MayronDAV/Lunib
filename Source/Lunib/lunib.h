@@ -10,6 +10,7 @@
 
 // Renderer
 #include "Lunib/Renderer/graphics_context.h"
+#include "Lunib/Renderer/renderer_api.h"
 
 // Events
 #include "Lunib/Events/event.h"
