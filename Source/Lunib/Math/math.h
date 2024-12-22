@@ -3,6 +3,8 @@
 
 #include "Ext/vector.h"
 #include "Ext/mat.h"
+#include "Ext/clip_space.h"
+#include "Ext/transform.h"
 #include "Core/type_ptr.h"
 #include "Core/common.h"
 

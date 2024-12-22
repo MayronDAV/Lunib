@@ -47,33 +47,52 @@ static const char* fragment_shader_text =
 "    o_color = vec4(u_color, 1.0);\n"
 "}\n";
 
+static const float quad_vertices[] = {
+	-1.0f, -1.0f,
+	 1.0f, -1.0f,
+	 1.0f,  1.0f,
+	-1.0f,  1.0f
+};
+
+
 
 int main()
 {
-	Lunib::WindowSpecification wspec 	= {};
+	using namespace Lunib;
+
+	WindowSpecification wspec 	= {};
 	wspec.Title 						= "Sandbox";
 	wspec.Width 						= 800;
 	wspec.Height 						= 600;
 	wspec.Maximize 						= false;
 	wspec.Resizable 					= true;
-	wspec.Mode 							= Lunib::WindowMode::Windowed;
+	wspec.Mode 							= WindowMode::Windowed;
 
-	s_Window 							= Lunib::Window::Create(wspec);
+	s_Window 							= Window::Create(wspec);
 	s_Window->SetEventCallback(EventCallback);
 
 
-	s_Input 							= Lunib::Input::Create(s_Window);
+	s_Input 							= Input::Create(s_Window);
 	
-	auto shader 						= Lunib::ShaderLibrary::Get("teste", { { Lunib::ShaderType::Vertex, vertex_shader_text }, { Lunib::ShaderType::Fragment, fragment_shader_text } });
+	auto shader 						= ShaderLibrary::Get("teste", { { ShaderType::Vertex, vertex_shader_text }, { ShaderType::Fragment, fragment_shader_text } });
+
+	float w = (float)wspec.Width / 2.0f;
+	float h = (float)wspec.Height / 2.0f;
+	Mat4 projection = Math::Ortho(-w, w, -h, h, 0.01f, 7.0f);
+
+	Vec3 position = { 0.3f, 0.5f, 0.0f };
 
 	while(s_Running)
 	{
-		Lunib::RendererAPI::Get().ClearColor({ 1.0f }, false);
+		RendererAPI::Get().ClearColor({ 1.0f }, false);
+
+		Mat4 model 	= Math::Translate(position);
+		model 		= Math::Scale(model, Vec3(0.5f));
 
 		s_Window->OnUpdate();
 	}
 
-	Lunib::ShaderLibrary::Release();
+	ShaderLibrary::Release();
 	delete s_Input;
 	delete s_Window;
 }
