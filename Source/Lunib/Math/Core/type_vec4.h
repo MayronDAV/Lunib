@@ -8,6 +8,8 @@
 	#include <string>
 #endif
 
+// std
+#include <cassert>
 
 
 namespace Lunib::Math
@@ -15,6 +17,8 @@ namespace Lunib::Math
 	template<typename T>
 	struct Vec<4, T>
 	{
+		typedef T value_type;
+
 		union { T x, r, s; };
 		union { T y, g, t; };
 		union { T z, b, p; };
@@ -33,6 +37,32 @@ namespace Lunib::Math
 		Vec(const Vec<3, U>& p_v, U p_w) : x(T(p_v.x)), y(T(p_v.y)), z(T(p_v.z)), w(T(p_w))  {}
 		template<typename U>
 		Vec(const Vec<4, U>& p_v) : x(T(p_v.x)), y(T(p_v.y)), z(T(p_v.z)), w(T(p_v.w))  {}
+
+		inline constexpr T& operator[](length_t p_i)
+		{
+			assert(p_i >= 0 && p_i < 4);
+			switch(p_i)
+			{
+				default:
+				case 0: return x;
+				case 1: return y;
+				case 2: return z;
+				case 3: return w;
+			}
+		}
+
+		inline constexpr T& operator[](length_t p_i) const
+		{
+			assert(p_i >= 0 && p_i < 4);
+			switch(p_i)
+			{
+				default:
+				case 0: return x;
+				case 1: return y;
+				case 2: return z;
+				case 3: return w;
+			}
+		}
 
 		template<typename U>
 		inline constexpr Vec<4, T>& operator=(const Vec<4, U>& p_v)
