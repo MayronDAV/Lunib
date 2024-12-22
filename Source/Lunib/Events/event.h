@@ -49,10 +49,10 @@ namespace Lunib
 
 			bool Handled 							= false;
 
-			virtual EventType GetEventType() const  { return EventType::None; }
-			virtual const char* GetName() const     { return "EventNone"; };
-			virtual int GetCategoryFlags() const    { return EventNone; };
-			virtual std::string ToString() const 	{ return GetName(); }
+			virtual EventType GetEventType() const	{ return EventType::None;	}
+			virtual const char* GetName() const		{ return "EventNone";		}
+			virtual int GetCategoryFlags() const	{ return EventNone;			}
+			virtual std::string ToString() const 	{ return GetName();			}
 
 			inline bool IsInCategory(EventCategory p_category) const
 			{
@@ -86,9 +86,9 @@ namespace Lunib
 				return ToString();
 			}
 
-			inline constexpr bool operator==(EventType p_Type) const
+			inline constexpr bool operator==(EventType p_type) const
 			{
-				return this->GetEventType() == p_Type;
+				return GetEventType() == p_type;
 			}
 
 			friend std::ostream& operator<<(std::ostream& p_os, const Event& p_event)

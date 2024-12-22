@@ -41,9 +41,9 @@ find_library(
 		Lib
 )
 
-if (VULKAN_SDK_PATH)
-	set(SHADERC_INCLUDE_DIR ${SHADERC_INCLUDE_DIR}/shaderc)
-endif()
+# if (VULKAN_SDK_PATH)
+# 	set(SHADERC_INCLUDE_DIR ${SHADERC_INCLUDE_DIR}/shaderc)
+# endif()
 
 unset(SHADERC_HEADER_FIND_ARGS)
 unset(SHADERC_LIB_FIND_ARGS)

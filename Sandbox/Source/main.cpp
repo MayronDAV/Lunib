@@ -29,6 +29,23 @@ static void EventCallback(Lunib::Event& p_event)
 }
 
 
+static const char* vertex_shader_text =
+"#version 450\n"
+"layout(location = 0) in vec2 a_pos;\n"
+"layout(location = 0) uniform mat4 MVP;\n"
+"void main()\n"
+"{\n"
+"    gl_Position = MVP * vec4(a_pos, 0.0, 1.0);\n"
+"}\n";
+ 
+static const char* fragment_shader_text =
+"#version 450\n"
+"layout(location = 0) out vec4 o_color;\n"
+"layout(location = 1) uniform vec3 u_color;\n"
+"void main()\n"
+"{\n"
+"    o_color = vec4(u_color, 1.0);\n"
+"}\n";
 
 
 int main()
@@ -44,7 +61,10 @@ int main()
 	s_Window 							= Lunib::Window::Create(wspec);
 	s_Window->SetEventCallback(EventCallback);
 
+
 	s_Input 							= Lunib::Input::Create(s_Window);
+	
+	auto shader 						= Lunib::ShaderLibrary::Get("teste", { { Lunib::ShaderType::Vertex, vertex_shader_text }, { Lunib::ShaderType::Fragment, fragment_shader_text } });
 
 	while(s_Running)
 	{
@@ -53,6 +73,7 @@ int main()
 		s_Window->OnUpdate();
 	}
 
+	Lunib::ShaderLibrary::Release();
 	delete s_Input;
 	delete s_Window;
 }

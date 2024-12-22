@@ -11,6 +11,7 @@
 // Renderer
 #include "Lunib/Renderer/graphics_context.h"
 #include "Lunib/Renderer/renderer_api.h"
+#include "Lunib/Renderer/shader.h"
 
 // Events
 #include "Lunib/Events/event.h"
