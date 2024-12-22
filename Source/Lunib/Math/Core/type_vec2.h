@@ -18,6 +18,7 @@ namespace Lunib::Math
 	struct Vec<2, T>
 	{
 		typedef T value_type;
+		typedef Vec<2, T> type;
 
 		union { T x, r, s; };
 		union { T y, g, t; };
@@ -142,9 +143,98 @@ namespace Lunib::Math
 
 	#if defined(LUNIB_MATH_STRING_OPERATOR)
 		inline operator std::string() const {
-            return "Vec2( " + std::to_string(x) + ", " + std::to_string(y) + " )";
+            return "( " + std::to_string(x) + ", " + std::to_string(y) + " )";
         }
 	#endif
 	};
+
+	// -- Unary operators --
+
+	template<typename T>
+	constexpr Vec<2, T> operator+(const Vec<2, T>& p_v)
+	{
+		return p_v;
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator-(const Vec<2, T>& p_v)
+	{
+		return Vec<2, T>(-p_v.x, -p_v.y);
+	}
+
+	// -- Binary operators --
+
+	template<typename T>
+	constexpr Vec<2, T> operator+(const Vec<2, T>& p_v, T p_scalar)
+	{
+		return Vec<2, T>(p_v.x + p_scalar, p_v.y + p_scalar);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator+(T p_scalar, const Vec<2, T>& p_v)
+	{
+		return Vec<2, T>(p_scalar + p_v.x, p_scalar + p_v.y);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator+(const Vec<2, T>& p_v1, const Vec<2, T>& p_v2)
+	{
+		return Vec<2, T>(p_v1.x + p_v2.x, p_v1.y + p_v2.y);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator-(const Vec<2, T>& p_v, T scalar)
+	{
+		return Vec<2, T>(p_v.x - scalar, p_v.y - scalar);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator-(T scalar, const Vec<2, T>& p_v)
+	{
+		return Vec<2, T>(scalar - p_v.x, scalar - p_v.y);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator-(const Vec<2, T>& p_v1, const Vec<2, T>& p_v2)
+	{
+		return Vec<2, T>(p_v1.x - p_v2.x, p_v1.y - p_v2.y);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator*(const Vec<2, T>& p_v, T scalar)
+	{
+		return Vec<2, T>(p_v.x * scalar, p_v.y * scalar);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator*(T scalar, const Vec<2, T>& p_v)
+	{
+		return Vec<2, T>(scalar * p_v.x, scalar * p_v.y);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator*(const Vec<2, T>& p_v1, const Vec<2, T>& p_v2)
+	{
+		return Vec<2, T>(p_v1.x * p_v2.x, p_v1.y * p_v2.y);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator/(const Vec<2, T>& p_v, T scalar)
+	{
+		return Vec<2, T>(p_v.x / scalar, p_v.y / scalar);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator/(T scalar, const Vec<2, T>& p_v)
+	{
+		return Vec<2, T>(scalar / p_v.x, scalar / p_v.y);
+	}
+
+	template<typename T>
+	constexpr Vec<2, T> operator/(const Vec<2, T>& p_v1, const Vec<2, T>& p_v2)
+	{
+		return Vec<2, T>(p_v1.x / p_v2.x, p_v1.y / p_v2.y);
+	}
+
 
 } // Lunib::Math

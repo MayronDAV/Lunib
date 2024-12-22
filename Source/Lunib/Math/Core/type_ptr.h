@@ -62,7 +62,7 @@ namespace Lunib::Math
         return Mat<3, 3, T>(
             p_ptr[0 ], p_ptr[1 ], p_ptr[2 ],
             p_ptr[4 ], p_ptr[5 ], p_ptr[6 ],
-            p_ptr[8 ], p_ptr[9 ], p_ptr[10],
+            p_ptr[8 ], p_ptr[9 ], p_ptr[10]
         );
     }
 
