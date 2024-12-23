@@ -3,12 +3,12 @@
 
 // std
 #include <iostream>
-#include <format>
-
 
 
 static bool s_Running 			= true;
 static Lunib::Window* s_Window 	= nullptr;
+static uint32_t s_Width 		= 800;
+static uint32_t s_Height 		= 600;
 static Lunib::Input* s_Input 	= nullptr;
 
 
@@ -29,31 +29,59 @@ static void EventCallback(Lunib::Event& p_event)
 }
 
 
-static const char* vertex_shader_text =
-"#version 450\n"
-"layout(location = 0) in vec2 a_pos;\n"
-"layout(location = 0) uniform mat4 MVP;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = MVP * vec4(a_pos, 0.0, 1.0);\n"
-"}\n";
+static const char *vertex_shader_text = "#version 450 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+	"uniform mat4 u_MVP;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = u_MVP * vec4(aPos, 1.0);\n"
+    "}\0";
  
-static const char* fragment_shader_text =
-"#version 450\n"
-"layout(location = 0) out vec4 o_color;\n"
-"layout(location = 1) uniform vec3 u_color;\n"
-"void main()\n"
-"{\n"
-"    o_color = vec4(u_color, 1.0);\n"
-"}\n";
+static const char* fragment_shader_text = "#version 450 core\n"
+	"layout (location = 0) out vec4 o_color;\n"
+	"uniform vec3 u_Color;\n"
+	"void main()\n"
+	"{\n"
+	"    o_color = vec4(u_Color, 1.0);\n"
+	"}\0";
 
-static const float quad_vertices[] = {
-	-1.0f, -1.0f,
-	 1.0f, -1.0f,
-	 1.0f,  1.0f,
-	-1.0f,  1.0f
-};
 
+
+static void ProcessInputs(double p_dt, Lunib::Vec3& p_position)
+{
+	Lunib::Vec3 direction(0.0f);
+
+	if (s_Input->IsKeyPressed(Lunib::Key::W))
+		direction.y = 1.0f;
+	if (s_Input->IsKeyPressed(Lunib::Key::S))
+		direction.y = -1.0f;
+	if (s_Input->IsKeyPressed(Lunib::Key::A))
+		direction.x = -1.0f;
+	if (s_Input->IsKeyPressed(Lunib::Key::D))
+		direction.x = 1.0f;
+
+	if (direction != Lunib::Vec3(0.0f))
+	{
+		direction = Lunib::Math::Normalize(direction);
+	}
+
+	p_position += direction * 1.5f * float(p_dt);
+}
+
+static Lunib::Mat4 CalcProjection()
+{
+    float w 			= float(s_Window->GetWidth());
+    float h 			= float(s_Window->GetHeight());
+    float size 			= 20.0f;
+    float aspect 		=  w / h;
+
+	float orthoLeft 	= -size * aspect * 0.5f;
+    float orthoRight 	=  size * aspect * 0.5f;
+    float orthoBottom 	= -size * 0.5f;
+    float orthoTop 		=  size * 0.5f;
+
+    return Lunib::Math::Ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, -1.0f, 1.0f);
+}
 
 
 int main()
@@ -71,28 +99,105 @@ int main()
 	s_Window 							= Window::Create(wspec);
 	s_Window->SetEventCallback(EventCallback);
 
+	if (!LInit())
+		throw std::runtime_error("Failed on Lunib init!");
 
 	s_Input 							= Input::Create(s_Window);
 	
-	auto shader 						= ShaderLibrary::Get("teste", { { ShaderType::Vertex, vertex_shader_text }, { ShaderType::Fragment, fragment_shader_text } });
+	auto shader 						= ShaderLibrary::Get("simple_shader", { { ShaderType::Vertex, vertex_shader_text }, { ShaderType::Fragment, fragment_shader_text } });
 
-	float w = (float)wspec.Width / 2.0f;
-	float h = (float)wspec.Height / 2.0f;
-	Mat4 projection = Math::Ortho(-w, w, -h, h, 0.01f, 7.0f);
+	// Vertex Array
+	auto vertexArray = VertexArray::Create();
 
-	Vec3 position = { 0.3f, 0.5f, 0.0f };
+	const float quad_vertices[] = {
+		-1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f
+	};
+
+	// Vertex Buffer
+	auto vertexBuffer = VertexBuffer::Create(quad_vertices, sizeof(quad_vertices));
+	vertexBuffer->SetLayout({ 
+		{ DataType::Float3, "aPos" } 
+	});
+
+	vertexArray->SetVertexBuffer(vertexBuffer);
+
+	// Index Buffer
+	uint32_t indices[] = { 0, 1, 2, 2, 3, 0 };
+	auto indexBuffer = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+
+	vertexArray->SetIndexBuffer(indexBuffer);
+
+	Vec3 position = { 0.0f, 0.0f, 0.0f };
+
+	double lastFrameTime = Clock::GetTime();
+
+	Mat4 projection = CalcProjection();
 
 	while(s_Running)
 	{
-		RendererAPI::Get().ClearColor({ 1.0f }, false);
+		// Timing
+
+		double time = Clock::GetTime();
+		double dt = time - lastFrameTime;
+		lastFrameTime = time;
+
+		// input
+
+		ProcessInputs(dt, position);
+
+		// math
+
+		if (s_Width != s_Window->GetWidth() || s_Height != s_Window->GetHeight())
+		{
+			projection 	= CalcProjection();
+			s_Width 	= s_Window->GetWidth();
+			s_Height 	= s_Window->GetHeight();
+		}
+
 
 		Mat4 model 	= Math::Translate(position);
-		model 		= Math::Scale(model, Vec3(0.5f));
+		Mat4 view 	= Math::Inverse(model);
+
+		// draw
+		RendererAPI::Get().SetViewport(0, 0, s_Window->GetWidth(), s_Window->GetHeight());
+
+		RendererAPI::Get().ClearColor({ 0.0f, 1.0f, 0.0f, 1.0f });
+
+		shader->Bind();
+
+		{
+			shader->SetMat4("u_MVP", projection * view * model);
+			shader->SetVec3("u_Color", { 1.0f, 0.0f, 0.0f });
+
+			RendererAPI::Get().DrawIndexed(DrawType::Triangles, vertexArray);
+		}
+
+		for (float x = 0.0f; x < 5.0f; x++)
+		{
+			for (float y = 0.0f; y < 5.0f; y++)
+			{
+				Mat4 tile = Math::Translate(Vec3{ x * 0.17f, y * 0.23f, 0.0f });
+				shader->SetMat4("u_MVP", projection * view * tile);
+				shader->SetVec3("u_Color", { 1.0f, 1.0f, 0.0f });
+
+				RendererAPI::Get().DrawIndexed(DrawType::Triangles, vertexArray);
+			}
+		}
+
+		shader->Unbind();
+
+		// swap buffer
 
 		s_Window->OnUpdate();
 	}
 
-	ShaderLibrary::Release();
-	delete s_Input;
-	delete s_Window;
+	Destroy(vertexArray);
+	Destroy(vertexBuffer);
+	Destroy(indexBuffer);
+	Destroy(s_Input);
+	LShutdown();
+	Destroy(s_Window);
 }

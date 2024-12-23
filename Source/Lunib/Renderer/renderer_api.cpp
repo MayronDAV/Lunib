@@ -16,6 +16,15 @@ namespace Lunib
         return *s_Instance;
     }
 
+    void RendererAPI::Release()
+    {
+        if (s_Instance)
+        {
+            delete s_Instance;
+            s_Instance = nullptr;
+        }
+    }
+
     RendererAPI* RendererAPI::Create()
     {
         if (Engine::GetAPI() == RenderAPI::OpenGL)

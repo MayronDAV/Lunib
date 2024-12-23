@@ -86,7 +86,7 @@ namespace Lunib
 				return ToString();
 			}
 
-			inline constexpr bool operator==(EventType p_type) const
+			inline bool operator==(const EventType& p_type) const
 			{
 				return GetEventType() == p_type;
 			}

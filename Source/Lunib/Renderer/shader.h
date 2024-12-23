@@ -1,12 +1,14 @@
 #pragma once
 #include "Lunib/Core/base.h"
 #include "Lunib/Math/Ext/vector.h"
+#include "Lunib/Math/math.h"
 #include "Lunib/Core/definitions.h"
 
 // std
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <cstdint>
 
 
 
@@ -25,13 +27,18 @@ namespace Lunib
 			virtual void Bind() const = 0;
 			virtual void Unbind() const = 0;
 
-			virtual void PushValue(const std::string& p_name, void* p_value) = 0;
+			virtual void SetMat4(const std::string& p_name, const Mat4& p_value) = 0;
+			virtual void SetMat3(const std::string& p_name, const Mat3& p_value) = 0;
+			virtual void SetVec2(const std::string& p_name, const Vec2& p_value) = 0;
+			virtual void SetVec3(const std::string& p_name, const Vec3& p_value) = 0;
+			virtual void SetVec4(const std::string& p_name, const Vec4& p_value) = 0;
+
 
 		protected:
 			Shader() = default;
 
-			static Shader* Create(const std::string& p_path);
-			static Shader* Create(const std::string& p_name, const ShaderSource& p_source);
+			static Shader* Create(const std::string& p_path, bool p_build_spirv = true);
+			static Shader* Create(const std::string& p_name, const ShaderSource& p_source, bool p_build_spirv = false);
 			static Shader* Create(const std::unordered_map<ShaderType, std::vector<uint32_t>>& p_spirv);
 
 		private:
@@ -49,8 +56,8 @@ namespace Lunib
 		public:
 			static void Release();
 
-			static Shader* Get(const std::string& p_path);
-			static Shader* Get(const std::string& p_name, const ShaderSource& p_source);
+			static Shader* Get(const std::string& p_path, bool p_build_spirv = true);
+			static Shader* Get(const std::string& p_name, const ShaderSource& p_source, bool p_build_spirv = false);
 
 			static void SetCacheDirectory(const std::string& p_path);
 

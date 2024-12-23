@@ -9,7 +9,7 @@ struct GLFWwindow;
 
 namespace Lunib
 {
-	class LUNIB_API GLFWWindow : public Window
+	class GLFWWindow : public Window
 	{
 		public:
 			GLFWWindow(const WindowSpecification& p_spec);

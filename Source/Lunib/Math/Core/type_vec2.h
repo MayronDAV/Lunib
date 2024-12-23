@@ -35,7 +35,7 @@ namespace Lunib::Math
 		template<typename U>
 		Vec(const Vec<4, U>& p_v) : x(T(p_v.x)), y(T(p_v.y)) {}
 
-		inline constexpr T& operator[](length_t p_i)
+		inline T& operator[](length_t p_i)
 		{
 			assert(p_i >= 0 && p_i < 2);
 			switch(p_i)
@@ -45,7 +45,7 @@ namespace Lunib::Math
 				case 1: return y;
 			}
 		}
-		inline constexpr T& operator[](length_t p_i) const
+		inline const T& operator[](length_t p_i) const
 		{
 			assert(p_i >= 0 && p_i < 2);
 			switch(p_i)

@@ -12,11 +12,7 @@ namespace Lunib
     Lunib::OpenGLContext::OpenGLContext(void *p_getProcAddress)
     {
         int status = gladLoadGLLoader((GLADloadproc)p_getProcAddress);
-        if (!status)
-        {
-            std::cerr << "Failed to initialize Glad!\n";
-            exit(1);
-        }
+        assert(status && "Failed to initialize Glad!");
     }
 
 

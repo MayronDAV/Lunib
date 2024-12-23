@@ -72,9 +72,9 @@ namespace Lunib::Math
 		Result[0][2] = -f.x;
 		Result[1][2] = -f.y;
 		Result[2][2] = -f.z;
-		Result[3][0] = -Dot(s, p_eye);
-		Result[3][1] = -Dot(u, p_eye);
-		Result[3][2] =  Dot(f, p_eye);
+		Result[3][0] = -(Dot(s, p_eye).x);
+		Result[3][1] = -(Dot(u, p_eye).x);
+		Result[3][2] =  (Dot(f, p_eye).x);
 		return Result;
 	}
 
@@ -95,9 +95,9 @@ namespace Lunib::Math
 		Result[0][2] = f.x;
 		Result[1][2] = f.y;
 		Result[2][2] = f.z;
-		Result[3][0] = -Dot(s, p_eye);
-		Result[3][1] = -Dot(u, p_eye);
-		Result[3][2] = -Dot(f, p_eye);
+		Result[3][0] = -(Dot(s, p_eye).x);
+		Result[3][1] = -(Dot(u, p_eye).x);
+		Result[3][2] = -(Dot(f, p_eye).x);
 		return Result;
 	}
 

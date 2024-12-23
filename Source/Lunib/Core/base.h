@@ -17,4 +17,12 @@
 	#error Currently only support windows, linux or macOS !
 #endif
 
+#define EXPAND_MACRO(x) x
+#define STRINGIFY_MACRO(x) #x
+
 #define BIT(x) (1 << x)
+
+// std
+#include <cassert>
+
+#include "log.h"

@@ -9,12 +9,78 @@
 #include <filesystem>
 
 // lib
-#include <shaderc/shaderc.hpp>
+#include <SPIRV/GlslangToSpv.h>
+#include <glslang/Public/ShaderLang.h>
 
 
 
 namespace Lunib
 {
+	static TBuiltInResource DefaultTBuiltInResource = {
+		32,  // maxLights
+		6,   // maxClipDistances
+		8,   // maxCullDistances
+		1,   // maxCombinedClipAndCullDistances
+		2048, // maxCombinedShaderOutputResources
+		4096, // maxComputeSharedMemorySize
+		16,  // maxComputeWorkGroupCount
+		1024, // maxComputeWorkGroupSize
+		8,   // maxFragmentInputComponents
+		64,  // maxImageUnits
+		128, // maxImageSamples
+		8,   // maxVertexOutputComponents
+		8,   // maxTessControlOutputComponents
+		16,  // maxTessEvaluationOutputComponents
+		8,   // maxGeometryOutputComponents
+		64,  // maxFragmentOutputAttachments
+		8,   // maxGeometryInputComponents
+		8,   // maxGeometryOutputComponents
+		256, // maxFragmentCombinedOutputResources
+		64,  // maxComputeWorkGroupInvocations
+		16,  // maxWorkGroupSize
+		1024, // maxWorkGroupCount
+		8,   // maxGeometryOutputVertices
+		1024, // maxGeometryTotalOutputComponents
+		16,  // maxFragmentInputComponents
+		16,  // maxVertexInputComponents
+		1024, // maxTessControlInputComponents
+		1024, // maxTessEvaluationInputComponents
+		256, // maxTessControlOutputComponents
+		1024, // maxTessEvaluationOutputComponents
+		2048, // maxShaderStorageBufferBindings
+		2048, // maxShaderStorageBufferSize
+		128, // maxAtomicCounterBindings
+		1024, // maxAtomicCounterBufferSize
+		32,  // maxShaderImageSize
+		2048, // maxShaderResourceSize
+		64,  // maxShaderSamplerSize
+		8,   // maxShaderConstantSize
+		8,   // maxShaderPushConstantSize
+		1024, // maxShaderUniformBufferSize
+		128, // maxShaderStorageBufferSize
+		1024, // maxShaderAtomicCounterSize
+		256, // maxShaderAtomicCounterBindings
+		2048, // maxShaderStorageBufferBindings
+		256, // maxShaderStorageBufferSize
+		2048, // maxShaderResourceSize
+		128, // maxShaderSamplerSize
+		128, // maxShaderSampledImageSize
+		64,  // maxShaderImageSize
+		8,   // maxShaderConstantSize
+		16,  // maxShaderPushConstantSize
+		256, // maxShaderUniformBufferSize
+		2048, // maxShaderStorageBufferBindings
+		256, // maxShaderStorageBufferSize
+		2048, // maxShaderResourceSize
+		128, // maxShaderSamplerSize
+		128, // maxShaderSampledImageSize
+		64,  // maxShaderImageSize
+		8,   // maxShaderConstantSize
+		16,  // maxShaderPushConstantSize
+	};
+
+
+
 	static std::string s_CacheDirectory = "cache/shader/";
 
 	static ShaderType ShaderTypeFromString(const std::string& p_type)
@@ -27,16 +93,71 @@ namespace Lunib
 		return ShaderType(0);
 	}
 
-	static shaderc_shader_kind ShaderTypeToShaderc(ShaderType p_type)
-	{
-		switch (p_type)
+    static EShLanguage ShaderTypeToGlslang(ShaderType p_type)
+    {
+        switch (p_type)
+        {
+            case ShaderType::Vertex:   return EShLangVertex;
+            case ShaderType::Fragment: return EShLangFragment;
+            default:                   return EShLangCount;
+        }
+    }
+
+	static std::vector<uint32_t> CompileGLSLToSPIRV(const std::string& source, ShaderType type)
+    {
+		glslang::InitializeProcess();
+
+        EShLanguage stage = ShaderTypeToGlslang(type);
+        glslang::TShader shader(stage);
+        const char* shaderStrings[1];
+        shaderStrings[0] = source.c_str();
+        shader.setStrings(shaderStrings, 1);
+
+		int ClientInputSemanticsVersion = 100;
+		glslang::EShTargetClientVersion ClientVersion;
+		glslang::EShTargetLanguageVersion TargetVersion;
+		glslang::EShClient Client;
+		if (Engine::GetAPI() == RenderAPI::OpenGL)
 		{
-			case ShaderType::Vertex:   return shaderc_glsl_vertex_shader;
-			case ShaderType::Fragment: return shaderc_glsl_fragment_shader;
+			Client 			= glslang::EShClientOpenGL;
+			ClientVersion 	= glslang::EShTargetOpenGL_450;
+			TargetVersion 	= glslang::EShTargetSpv_1_6;
+			shader.setAutoMapLocations(true);
+			shader.setAutoMapBindings(true);
 		}
 
-		return (shaderc_shader_kind)0;
-	}
+		shader.setEnvInput(glslang::EShSourceGlsl, stage, Client, ClientInputSemanticsVersion);
+		shader.setEnvClient(Client, ClientVersion);
+		shader.setEnvTarget(glslang::EShTargetSpv, TargetVersion);
+
+		TBuiltInResource Resources 					= DefaultTBuiltInResource;
+		Resources.limits.generalUniformIndexing  	= true;
+		Resources.limits.generalVariableIndexing 	= true;
+		Resources.limits.nonInductiveForLoops	 	= true;
+
+        if (auto rules = (EShMessages)(EShMsgSpvRules);
+			!shader.parse(&Resources, 100, false, rules))
+        {
+			LERROR("GLSL parsing failed: {}", shader.getInfoLog());
+            throw std::runtime_error("");
+        }
+
+        glslang::TProgram program;
+        program.addShader(&shader);
+
+        if (!program.link(EShMsgDefault))
+        {
+			LERROR("GLSL linking failed: {}", program.getInfoLog());
+            throw std::runtime_error("");
+        }
+
+        std::vector<uint32_t> spirv;
+        glslang::GlslangToSpv(*program.getIntermediate(stage), spirv);
+
+		glslang::FinalizeProcess();
+        return spirv;
+    }
+
 
 	static void CreateDirectoryIfNeeded(const std::string& p_path)
 	{
@@ -55,16 +176,28 @@ namespace Lunib
 		return "";
 	}
 
-	Shader* Shader::Create(const std::string& p_path)
+	Shader* Shader::Create(const std::string& p_path, bool p_build_spirv /* = true */)
 	{
-		auto shaderSource 	= Process(p_path);
+		auto source	= Process(p_path);
 
-		return Create(CompileOrGetSpirv(p_path, shaderSource, true));
+		if (p_build_spirv)
+			return Create(CompileOrGetSpirv(p_path, source, true));
+
+		if (Engine::GetAPI() == RenderAPI::OpenGL)
+			return new OpenGLShader(source);
+
+		return nullptr;
 	}
 
-    Shader* Shader::Create(const std::string& p_name, const ShaderSource& p_source)
+    Shader* Shader::Create(const std::string& p_name, const ShaderSource& p_source, bool p_build_spirv /* = false */)
     {
-		return Create(CompileOrGetSpirv(p_name, p_source, false));
+		if (p_build_spirv)
+			return Create(CompileOrGetSpirv(p_name, p_source, false));
+
+		if (Engine::GetAPI() == RenderAPI::OpenGL)
+			return new OpenGLShader(p_source);
+
+		return nullptr;
     }
 
     Shader* Shader::Create(const std::unordered_map<ShaderType, std::vector<uint32_t>>& p_spirv)
@@ -82,7 +215,7 @@ namespace Lunib
 
 		if (!shaderFile)
 		{
-			std::cerr << "Could not open file: " << p_path << "\n";
+			LERROR("Could not open file: {}", p_path);
 			return std::string();
 		}
 
@@ -124,17 +257,8 @@ namespace Lunib
 				end   = p_code.find("\"", start);
 			}
 
-			if (!(start != std::string::npos && end != std::string::npos))
-			{
-				std::cerr << "Invalid include directive!\n";
-				return p_code;
-			}
-
-			if (!(start < eol && end < eol))
-			{
-				std::cerr << "Not on the same line!\n";
-				return p_code;
-			}
+			assert((start != std::string::npos && end != std::string::npos) && "Invalid include directive!");
+			assert((start < eol && end < eol) && "Not on the same line!");
 
 			std::string includeFilepath = p_code.substr(start + 1, end - start - 1);
 			std::filesystem::path filepath = p_path;
@@ -169,11 +293,7 @@ namespace Lunib
 		while (pos != std::string::npos)
 		{
 			size_t eol = source.find_first_of("\r\n", pos);
-			if (!(eol != std::string::npos))
-			{
-				std::cerr << "Syntax error!\n";
-				return ShaderSource();
-			}
+			assert((eol != std::string::npos) && "Syntax error!\n");
 
 			size_t begin = source.find_first_not_of(" \t", pos + typeTokenLength);
 			size_t end = source.find_last_not_of(" \t", eol);
@@ -200,18 +320,6 @@ namespace Lunib
     {
 		CreateDirectoryIfNeeded(s_CacheDirectory);
 
-		shaderc::Compiler compiler;
-		shaderc::CompileOptions options;
-		bool optimize = true;
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
-		{
-			options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
-			optimize = false;
-		}
-
-		if (optimize)
-			options.SetOptimizationLevel(shaderc_optimization_level_performance);
-
 		std::filesystem::path cacheDirectory = s_CacheDirectory;
 
 		 std::unordered_map<ShaderType, std::vector<uint32_t>> spirv = {};
@@ -221,7 +329,7 @@ namespace Lunib
 			if (p_isPath)
 			{
 				std::filesystem::path shaderFilePath = p_name;
-				cachedPath = cacheDirectory / (shaderFilePath.filename().string() + ShaderTypeCachedFileExtension(stage));
+				cachedPath = cacheDirectory / (shaderFilePath.stem().string() + ShaderTypeCachedFileExtension(stage));
 			}
 			else
 			{
@@ -241,14 +349,7 @@ namespace Lunib
 			}
 			else
 			{
-				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, ShaderTypeToShaderc(stage), p_name.c_str(), options);
-				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
-				{
-					std::cerr << module.GetErrorMessage() << "\n";
-					return {};
-				}
-
-				spirv[stage] = std::vector<uint32_t>(module.cbegin(), module.cend());
+				spirv[stage] = CompileGLSLToSPIRV(source, stage);
 
 				std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
 				if (out.is_open())
@@ -281,18 +382,18 @@ namespace Lunib
 		s_Shaders.clear();
 	}
 
-    Shader* ShaderLibrary::Get(const std::string& p_path)
+    Shader* ShaderLibrary::Get(const std::string& p_path, bool p_build_spirv /* = true */)
     {
 		if (!Exists(p_path))
-			s_Shaders[p_path].ptr = Shader::Create(p_path);
+			s_Shaders[p_path].ptr = Shader::Create(p_path, p_build_spirv);
 
         return s_Shaders[p_path].ptr;
     }
 
-    Shader* ShaderLibrary::Get(const std::string& p_name, const ShaderSource& p_source)
+    Shader* ShaderLibrary::Get(const std::string& p_name, const ShaderSource& p_source, bool p_build_spirv /* = false */)
     {
 		if (!Exists(p_name))
-			s_Shaders[p_name].ptr = Shader::Create(p_name, p_source);
+			s_Shaders[p_name].ptr = Shader::Create(p_name, p_source, p_build_spirv);
 
         return s_Shaders[p_name].ptr;
     }

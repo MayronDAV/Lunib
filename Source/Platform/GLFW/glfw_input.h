@@ -6,21 +6,21 @@ struct GLFWwindow;
 
 namespace Lunib
 {
-    class LUNIB_API GLFWInput : public Input
-    {
-        public:
-            GLFWInput(Window* p_window);
-            ~GLFWInput() override = default;
-            
-            bool IsKeyPressed(int p_keycode) const override;
+	class GLFWInput : public Input
+	{
+		public:
+			GLFWInput(Window* p_window);
+			~GLFWInput() override = default;
+			
+			bool IsKeyPressed(int p_keycode) const override;
 			bool IsMouseButtonPressed(int p_button) const override;
 
-            Vec2  GetMousePosition() const override;
+			Vec2  GetMousePosition() const override;
 			float GetMouseX() const override;
 			float GetMouseY() const override;
 
-        private:
-            GLFWwindow* m_Window = nullptr;
-    };
-    
+		private:
+			GLFWwindow* m_Window = nullptr;
+	};
+	
 } // Lunib

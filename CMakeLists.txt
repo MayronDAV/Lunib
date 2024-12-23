@@ -39,6 +39,7 @@ set(INCLUDE_FILES 	 			${SOURCE_DIR})
 set(EXTERN_SRC_FILES 			"")
 set(LIBS 						"")
 
+
 # GLFW
 add_subdirectory(${THIRDPARTY_DIR}/glfw)
 list(APPEND LIBS 				glfw)
@@ -48,10 +49,21 @@ list(APPEND INCLUDE_FILES 		"${THIRDPARTY_DIR}/glfw/include")
 list(APPEND EXTERN_SRC_FILES 	"${THIRDPARTY_DIR}/glad/src/glad.c")
 list(APPEND INCLUDE_FILES 		"${THIRDPARTY_DIR}/glad/include")
 
-# SHADERC
-find_package(Shaderc REQUIRED)
-list(APPEND LIBS 				Shaderc::Shaderc)
-list(APPEND INCLUDE_FILES 		SHADERC_INCLUDE_DIR)
+# GLSLANG
+set(BUILD_SHARED_LIBS 			OFF)
+set(ENABLE_HLSL 				OFF)
+set(ENABLE_SPVREMAPPER 			OFF)
+set(ENABLE_GLSLANG_BINARIES 	OFF)
+set(ENABLE_CTEST 				OFF)
+set(ENABLE_OPT 					OFF)
+set(ENABLE_VALIDATION 			OFF)
+set(ENABLE_RTTI 				OFF)
+set(ENABLE_EXCEPTIONS 			OFF)
+add_subdirectory(${THIRDPARTY_DIR}/glslang)
+list(APPEND LIBS 				glslang SPIRV)
+list(APPEND INCLUDE_FILES 		"${THIRDPARTY_DIR}/glslang")
+
+
 
 # FREETYPE
 if(APPLE)
@@ -81,13 +93,9 @@ list(APPEND LIBS 				msdf-atlas-gen)
 list(APPEND INCLUDE_FILES 		"${THIRDPARTY_DIR}/msdf-atlas-gen/msdf-atlas-gen")
 list(APPEND INCLUDE_FILES 		"${THIRDPARTY_DIR}/msdf-atlas-gen/msdfgen")
 
-# SPDLOG
-add_subdirectory(${THIRDPARTY_DIR}/spdlog)
-list(APPEND LIBS 				spdlog)
-list(APPEND INCLUDE_FILES 		"${THIRDPARTY_DIR}/spdlog/include")
-
 # STB
 list(APPEND INCLUDE_FILES 		"${THIRDPARTY_DIR}/stb/include")
+
 
 if(WIN32)
 	list(APPEND LUNIB_DEFINITIONS "LUNIB_WINDOWS")
