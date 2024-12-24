@@ -27,6 +27,7 @@ namespace Lunib
 			virtual void Bind() const = 0;
 			virtual void Unbind() const = 0;
 
+			virtual void SetInt(const std::string& p_name, int p_value) = 0;
 			virtual void SetMat4(const std::string& p_name, const Mat4& p_value) = 0;
 			virtual void SetMat3(const std::string& p_name, const Mat3& p_value) = 0;
 			virtual void SetVec2(const std::string& p_name, const Vec2& p_value) = 0;
@@ -58,6 +59,9 @@ namespace Lunib
 
 			static Shader* Get(const std::string& p_path, bool p_build_spirv = true);
 			static Shader* Get(const std::string& p_name, const ShaderSource& p_source, bool p_build_spirv = false);
+
+			static Shader* Reload(const std::string& p_path, bool p_build_spirv = true);
+			static Shader* Reload(const std::string& p_name, const ShaderSource& p_source, bool p_build_spirv = false);
 
 			static void SetCacheDirectory(const std::string& p_path);
 

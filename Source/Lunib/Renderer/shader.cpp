@@ -377,7 +377,10 @@ namespace Lunib
 	void ShaderLibrary::Release()
 	{
 		for (auto& shader : s_Shaders)
-			delete shader.second.ptr;
+		{
+			if (shader.second.ptr)
+				delete shader.second.ptr;		
+		}
 
 		s_Shaders.clear();
 	}
@@ -396,6 +399,38 @@ namespace Lunib
 			s_Shaders[p_name].ptr = Shader::Create(p_name, p_source, p_build_spirv);
 
         return s_Shaders[p_name].ptr;
+    }
+
+    Shader* ShaderLibrary::Reload(const std::string &p_path, bool p_build_spirv)
+    {
+		if (!Exists(p_path))
+		{
+			s_Shaders[p_path].ptr = nullptr;
+		}
+
+		if (s_Shaders[p_path].ptr)
+		{
+			delete s_Shaders[p_path].ptr;
+		}
+
+		s_Shaders[p_path].ptr = Shader::Create(p_path, p_build_spirv);
+		return s_Shaders[p_path].ptr;
+    }
+
+    Shader *ShaderLibrary::Reload(const std::string &p_name, const ShaderSource &p_source, bool p_build_spirv)
+    {
+		if (!Exists(p_name))
+		{
+			s_Shaders[p_name].ptr = nullptr;
+		}
+
+		if (s_Shaders[p_name].ptr)
+		{
+			delete s_Shaders[p_name].ptr;
+		}
+
+		s_Shaders[p_name].ptr = Shader::Create(p_name, p_source, p_build_spirv);
+		return s_Shaders[p_name].ptr;
     }
 
     void ShaderLibrary::SetCacheDirectory(const std::string &p_path)

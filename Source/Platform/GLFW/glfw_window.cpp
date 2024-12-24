@@ -106,6 +106,7 @@ namespace Lunib
 				glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 				glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+				glfwWindowHint(GLFW_SAMPLES, 4);
 
 			#if defined(LUNIB_APPLE)
 				glfwWindowHint(GLFW_SAMPLES, 1);
@@ -340,6 +341,22 @@ namespace Lunib
 		m_Data.Width 	= p_width;
 		m_Data.Height 	= p_height;
 		glfwSetWindowSize(m_Window, int(p_width), int(p_height));
+	}
+
+	uint32_t GLFWWindow::GetWidth() const
+	{
+		int width, height;
+		glfwGetFramebufferSize(m_Window, &width, &height);
+
+		return uint32_t(width);
+	}
+
+	uint32_t GLFWWindow::GetHeight() const
+	{
+		int width, height;
+		glfwGetFramebufferSize(m_Window, &width, &height);
+
+		return uint32_t(height);
 	}
 
 } // Lunib

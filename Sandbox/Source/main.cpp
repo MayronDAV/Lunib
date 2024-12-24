@@ -4,90 +4,99 @@
 // std
 #include <iostream>
 
+using namespace Lunib;
 
 static bool s_Running 			= true;
-static Lunib::Window* s_Window 	= nullptr;
+static Window* s_Window 		= nullptr;
 static uint32_t s_Width 		= 800;
 static uint32_t s_Height 		= 600;
-static Lunib::Input* s_Input 	= nullptr;
-
-
-static void EventCallback(Lunib::Event& p_event)
-{
-	if (p_event == Lunib::EventType::WindowClose)
-	{
-		s_Running = false;
-	}
-
-	if (s_Input->IsKeyPressed(p_event, Lunib::Key::F11))
-	{
-		if (s_Window->GetMode() != Lunib::WindowMode::Fullscreen)
-			s_Window->SetWindowMode(Lunib::WindowMode::Fullscreen, true, true);
-		else
-			s_Window->SetWindowMode(Lunib::WindowMode::Windowed, false, true);
-	}
-}
-
+static Input* s_Input 			= nullptr;
+static bool s_Reload 			= false;
 
 static const char *vertex_shader_text = "#version 450 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 0) in vec3 inPos;\n"
+	"layout (location = 1) in vec2 inTexcoord;\n"
 	"uniform mat4 u_MVP;\n"
+	"layout (location = 0) out vec2 outTexcoord;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = u_MVP * vec4(aPos, 1.0);\n"
+    "   gl_Position = u_MVP * vec4(inPos, 1.0);\n"
+	"	outTexcoord = inTexcoord;\n"
     "}\0";
  
 static const char* fragment_shader_text = "#version 450 core\n"
 	"layout (location = 0) out vec4 o_color;\n"
-	"uniform vec3 u_Color;\n"
+	"layout (location = 0) in vec2 inTexcoord;\n"
+	"uniform sampler2D u_Texture;\n"
 	"void main()\n"
 	"{\n"
-	"    o_color = vec4(u_Color, 1.0);\n"
+	"    o_color = texture(u_Texture, inTexcoord);\n"
 	"}\0";
 
 
 
-static void ProcessInputs(double p_dt, Lunib::Vec3& p_position)
+static void EventCallback(Event& p_event)
 {
-	Lunib::Vec3 direction(0.0f);
+	if (p_event == EventType::WindowClose)
+	{
+		s_Running = false;
+	}
 
-	if (s_Input->IsKeyPressed(Lunib::Key::W))
+	if (s_Input->IsKeyPressed(p_event, Key::F11))
+	{
+		if (s_Window->GetMode() != WindowMode::Fullscreen)
+		{
+			s_Window->SetWindowMode(WindowMode::Fullscreen, true, true);
+			s_Reload = true;
+		}
+		else
+		{
+			s_Window->SetWindowMode(WindowMode::Windowed, false, true);
+			s_Reload = true;
+		}
+	}
+}
+
+
+
+static void ProcessInputs(double p_dt, Vec3& p_position)
+{
+	Vec3 direction(0.0f);
+
+	if (s_Input->IsKeyPressed(Key::W))
 		direction.y = 1.0f;
-	if (s_Input->IsKeyPressed(Lunib::Key::S))
+	if (s_Input->IsKeyPressed(Key::S))
 		direction.y = -1.0f;
-	if (s_Input->IsKeyPressed(Lunib::Key::A))
+	if (s_Input->IsKeyPressed(Key::A))
 		direction.x = -1.0f;
-	if (s_Input->IsKeyPressed(Lunib::Key::D))
+	if (s_Input->IsKeyPressed(Key::D))
 		direction.x = 1.0f;
 
-	if (direction != Lunib::Vec3(0.0f))
+	if (direction != Vec3(0.0f))
 	{
-		direction = Lunib::Math::Normalize(direction);
+		direction = Math::Normalize(direction);
 	}
 
 	p_position += direction * 1.5f * float(p_dt);
 }
 
-static Lunib::Mat4 CalcProjection()
+static Mat4 CalcProjection()
 {
-    float w 			= float(s_Window->GetWidth());
-    float h 			= float(s_Window->GetHeight());
-    float size 			= 20.0f;
-    float aspect 		=  w / h;
+    float size = 20.0f;
+    float aspect = float(s_Window->GetWidth()) / float(s_Window->GetHeight());
 
-	float orthoLeft 	= -size * aspect * 0.5f;
-    float orthoRight 	=  size * aspect * 0.5f;
-    float orthoBottom 	= -size * 0.5f;
-    float orthoTop 		=  size * 0.5f;
+    float orthoLeft   = -size * 0.5f;
+    float orthoRight  =  size * 0.5f;
+    float orthoBottom = -size * 0.5f / aspect;
+    float orthoTop    =  size * 0.5f / aspect;
 
-    return Lunib::Math::Ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, -1.0f, 1.0f);
+    return Math::Ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, -1.0f, 1.0f);
 }
+
 
 
 int main()
 {
-	using namespace Lunib;
-
 	WindowSpecification wspec 	= {};
 	wspec.Title 						= "Sandbox";
 	wspec.Width 						= 800;
@@ -104,22 +113,23 @@ int main()
 
 	s_Input 							= Input::Create(s_Window);
 	
-	auto shader 						= ShaderLibrary::Get("simple_shader", { { ShaderType::Vertex, vertex_shader_text }, { ShaderType::Fragment, fragment_shader_text } });
+	auto shader							= ShaderLibrary::Get("simple_shader", { { ShaderType::Vertex, vertex_shader_text }, { ShaderType::Fragment, fragment_shader_text } });
 
 	// Vertex Array
 	auto vertexArray = VertexArray::Create();
 
 	const float quad_vertices[] = {
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f
+		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f
 	};
 
 	// Vertex Buffer
 	auto vertexBuffer = VertexBuffer::Create(quad_vertices, sizeof(quad_vertices));
 	vertexBuffer->SetLayout({ 
-		{ DataType::Float3, "aPos" } 
+		{ DataType::Float3, "inPos" } ,
+		{ DataType::Float2, "inTexcoord" } 
 	});
 
 	vertexArray->SetVertexBuffer(vertexBuffer);
@@ -136,8 +146,41 @@ int main()
 
 	Mat4 projection = CalcProjection();
 
+	//FpsCalculator fps;
+
+	Texture2D* container 	= LoadTexture2D("Resources/container.jpg");
+	Texture2D* wall 		= LoadTexture2D("Resources/wall.jpg");
+
 	while(s_Running)
 	{
+		if (s_Reload)
+		{
+			RendererAPI::Release();
+			RendererAPI::Init();
+			Destroy(vertexArray);
+			Destroy(vertexBuffer);
+			Destroy(indexBuffer);
+			Destroy(s_Input);	
+			s_Input = Input::Create(s_Window);
+			shader  = ShaderLibrary::Reload("simple_shader", { { ShaderType::Vertex, vertex_shader_text }, { ShaderType::Fragment, fragment_shader_text } });
+
+			vertexArray = VertexArray::Create();
+
+			vertexBuffer = VertexBuffer::Create(quad_vertices, sizeof(quad_vertices));
+			vertexBuffer->SetLayout({ 
+				{ DataType::Float3, "aPos" } 
+			});
+
+			vertexArray->SetVertexBuffer(vertexBuffer);
+
+			// Index Buffer
+			indexBuffer = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+
+			vertexArray->SetIndexBuffer(indexBuffer);
+
+			s_Reload = false;
+		}
+
 		// Timing
 
 		double time = Clock::GetTime();
@@ -168,13 +211,16 @@ int main()
 
 		shader->Bind();
 
+		container->Bind();
 		{
 			shader->SetMat4("u_MVP", projection * view * model);
 			shader->SetVec3("u_Color", { 1.0f, 0.0f, 0.0f });
 
 			RendererAPI::Get().DrawIndexed(DrawType::Triangles, vertexArray);
 		}
+		container->Unbind();
 
+		wall->Bind();
 		for (float x = 0.0f; x < 5.0f; x++)
 		{
 			for (float y = 0.0f; y < 5.0f; y++)
@@ -186,14 +232,19 @@ int main()
 				RendererAPI::Get().DrawIndexed(DrawType::Triangles, vertexArray);
 			}
 		}
+		wall->Unbind();
 
 		shader->Unbind();
 
 		// swap buffer
 
 		s_Window->OnUpdate();
+		
+		//fps.Calculate();
 	}
 
+	Destroy(container);
+	Destroy(wall);
 	Destroy(vertexArray);
 	Destroy(vertexBuffer);
 	Destroy(indexBuffer);

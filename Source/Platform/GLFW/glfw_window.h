@@ -30,8 +30,8 @@ namespace Lunib
 
 			const std::vector<Resolution>& GetResolutions() override { return m_Resolutions; }
 			bool IsVsync() const override { return m_Data.Vsync; }
-			uint32_t GetWidth() const override { return m_Data.Width; }
-			uint32_t GetHeight() const override { return m_Data.Height; }
+			uint32_t GetWidth() const override;
+			uint32_t GetHeight() const override;
 			std::string GetTitle() const override { return m_Data.Title; }
 			void* GetNativeWindow() const override { return m_Window; }
 			IVec2 GetPos() const override { return m_Data.Position; }

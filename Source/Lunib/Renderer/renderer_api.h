@@ -18,6 +18,7 @@ namespace Lunib
 			virtual ~RendererAPI() = default;
 
 			static RendererAPI& Get();
+			static void Init();
 			static void Release();
 
 			virtual void SetViewport(float p_x, float p_y, uint32_t p_width, uint32_t p_height) = 0;

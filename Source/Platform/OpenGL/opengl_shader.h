@@ -13,6 +13,7 @@ namespace Lunib
 			void Bind() const override;
 			void Unbind() const override;
 
+			void SetInt(const std::string& p_name, int p_value) 		 override;
 			void SetMat4(const std::string& p_name, const Mat4& p_value) override;
 			void SetMat3(const std::string& p_name, const Mat3& p_value) override;
 			void SetVec2(const std::string& p_name, const Vec2& p_value) override;

@@ -46,6 +46,13 @@ namespace Lunib
 		glUseProgram(0);
 	}
 
+    void OpenGLShader::SetInt(const std::string &p_name, int p_value)
+    {
+		std::string name = p_name;
+		int location = glGetUniformLocation(m_RendererID, name.c_str());
+		glUniform1i(m_RendererID, p_value);
+    }
+
     void OpenGLShader::SetMat4(const std::string &p_name, const Mat4 &p_value)
     {
 		std::string name = p_name;

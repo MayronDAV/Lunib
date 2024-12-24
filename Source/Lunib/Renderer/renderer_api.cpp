@@ -10,10 +10,15 @@ namespace Lunib
 
     RendererAPI& RendererAPI::Get()
     {
-        if (!s_Instance)
-            s_Instance = Create();
+        Init();
 
         return *s_Instance;
+    }
+
+    void RendererAPI::Init()
+    {
+        if (!s_Instance)
+            s_Instance = Create();
     }
 
     void RendererAPI::Release()

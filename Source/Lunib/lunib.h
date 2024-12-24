@@ -16,6 +16,8 @@
 #include "Lunib/Renderer/shader.h"
 #include "Lunib/Renderer/vertex_array.h"
 #include "Lunib/Renderer/buffer.h"
+#include "Lunib/Renderer/texture.h"
+#include "Lunib/Renderer/texture_importer.h"
 
 // Events
 #include "Lunib/Events/event.h"
@@ -29,6 +31,7 @@
 // Utils
 #include "Lunib/Utils/timer.h"
 #include "Lunib/Utils/utils.h"
+#include "Lunib/Utils/fps.h"
 
 
 

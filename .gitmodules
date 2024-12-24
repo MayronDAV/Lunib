@@ -1,3 +1,9 @@
 [submodule "Thirdparty/msdf-atlas-gen"]
 	path = Thirdparty/msdf-atlas-gen
 	url = https://github.com/Chlumsky/msdf-atlas-gen.git
+[submodule "Thirdparty/libpng"]
+	path = Thirdparty/libpng
+	url = https://github.com/pnggroup/libpng.git
+[submodule "Thirdparty/zlib"]
+	path = Thirdparty/zlib
+	url = https://github.com/madler/zlib.git

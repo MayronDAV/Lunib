@@ -83,11 +83,37 @@ else()
 	#list(APPEND INCLUDE_FILES 	  "${LIB_ROOT_DIR}/include/freetype")
 endif()
 
+# ZLIB
+option(ZLIB_BUILD_EXAMPLES OFF)
+add_subdirectory(${THIRDPARTY_DIR}/zlib)
+list(APPEND LIBS zlibstatic)
+list(APPEND INCLUDE_FILES "${THIRDPARTY_DIR}/zlib")
+if (WIN32)
+	if (CMAKE_BUILD_TYPE STREQUAL Debug)
+		set(ZLIB_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/Thirdparty/zlib/Debug/zlibstaticd.lib")
+	else()
+		set(ZLIB_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/Thirdparty/zlib/Release/zlibstatic.lib")
+	endif()
+elseif(UNIX)
+	find_package(ZLIB REQUIRED)
+endif()
+set(ZLIB_INCLUDE_DIR "${THIRDPARTY_DIR}/zlib")
+
+set(ZLIB_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/Thirdparty/zlib")
+include_directories(${ZLIB_INCLUDE_DIR} ${ZLIB_BINARY_DIR})
+
+
+# LIBPNG
+option(ZLIB_USE_STATIC_LIBS ON)
+add_subdirectory(${THIRDPARTY_DIR}/libpng)
+list(APPEND LIBS png_static)
+list(APPEND INCLUDE_FILES "${THIRDPARTY_DIR}/libpng;${CMAKE_CURRENT_BINARY_DIR}/Thirdparty/libpng")
+add_library(PNG::PNG ALIAS png_static)
+
 # MSDF
 set(MSDF_ATLAS_BUILD_STANDALONE OFF)
 set(MSDF_ATLAS_USE_VCPKG 		OFF)
 set(MSDF_ATLAS_USE_SKIA 		OFF)
-set(MSDFGEN_DISABLE_PNG 		TRUE) # TODO
 add_subdirectory(${THIRDPARTY_DIR}/msdf-atlas-gen)
 list(APPEND LIBS 				msdf-atlas-gen)
 list(APPEND INCLUDE_FILES 		"${THIRDPARTY_DIR}/msdf-atlas-gen/msdf-atlas-gen")
